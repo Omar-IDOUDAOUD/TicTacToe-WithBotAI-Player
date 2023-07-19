@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tic_tac_toe/constants/avatars.dart';
 import 'package:tic_tac_toe/constants/colors.dart';
+import 'package:tic_tac_toe/play_board.dart';
 import 'package:tic_tac_toe/widgets/button.dart';
 import 'package:tic_tac_toe/widgets/scaf_bacround.dart';
 
@@ -125,7 +126,11 @@ class _EnterPlayerNameState extends State<EnterPlayerName> {
                   width: 200,
                   child: Button(
                     text: 'Play',
-                    onClick: () {},
+                    onClick: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
+                        return PlayBoard();
+                      }));
+                    },
                     startColor: ColorsPalette.r,
                     endColor: ColorsPalette.t,
                     iconPath:
