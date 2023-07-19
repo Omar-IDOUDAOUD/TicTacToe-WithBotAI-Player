@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tic_tac_toe/colors.dart';
+import 'package:tic_tac_toe/constants/colors.dart';
 import 'package:tic_tac_toe/enter_player_name.dart';
 import 'package:tic_tac_toe/widgets/button.dart';
 import 'package:tic_tac_toe/widgets/scaf_bacround.dart';
@@ -44,7 +44,7 @@ class _HomeState extends State<Home> {
                           context,
                           MaterialPageRoute(
                             builder: (_) {
-                              return EnterPlayerName();
+                              return EnterPlayerName(playType: PlayType.PlayerVsPlayer,);
                             },
                           ),
                         );
@@ -62,7 +62,7 @@ class _HomeState extends State<Home> {
                           context,
                           MaterialPageRoute(
                             builder: (_) {
-                              return EnterPlayerName();
+                              return EnterPlayerName(playType: PlayType.PlayerVsBot,);
                             },
                           ),
                         );
@@ -76,14 +76,14 @@ class _HomeState extends State<Home> {
                       startColor: ColorsPalette.r,
                       endColor: ColorsPalette.t,
                       onClick: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) {
-                              return EnterPlayerName();
-                            },
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (_) {
+                        //       return EnterPlayerName();
+                        //     },
+                        //   ),
+                        // );
                       },
                     ),
                   ],

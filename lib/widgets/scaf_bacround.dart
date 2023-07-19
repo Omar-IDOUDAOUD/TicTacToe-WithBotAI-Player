@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tic_tac_toe/colors.dart';
+import 'package:tic_tac_toe/constants/colors.dart';
 
 class ScafBackround extends StatefulWidget {
   const ScafBackround({super.key, required this.child});

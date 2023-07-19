@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class Button extends StatelessWidget {
   const Button(
       {super.key,
       required this.text,
-      this.icon,
+      this.iconPath,
       required this.onClick,
       required this.startColor,
       required this.endColor});
   final String text;
-  final IconData? icon;
+  final String? iconPath;
   final Function() onClick;
   final Color startColor;
   final Color endColor;
@@ -48,11 +49,9 @@ class Button extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Postnobillscolombo'),
               ),
-              if (icon != null) ...[
-                SizedBox(
-                  width: 5,
-                ),
-                Icon(icon, color: Colors.indigo),
+              if (iconPath != null) ...[
+                Spacer(),
+                SvgPicture.asset(iconPath!, color: Colors.white),
               ]
             ],
           ),
