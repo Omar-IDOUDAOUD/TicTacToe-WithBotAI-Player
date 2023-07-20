@@ -128,7 +128,10 @@ class _EnterPlayerNameState extends State<EnterPlayerName> {
                     text: 'Play',
                     onClick: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) {
-                        return PlayBoard();
+                        return PlayBoard(
+                          playType: widget.playType,
+                          botDifficulty: _botPlayerDifficulty,
+                        );
                       }));
                     },
                     startColor: ColorsPalette.r,

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tic_tac_toe/bot_ai.dart';
 import 'package:tic_tac_toe/constants/colors.dart';
+import 'package:tic_tac_toe/enter_player_name.dart';
 import 'package:tic_tac_toe/widgets/scaf_bacround.dart';
 
 class PlayerData {
@@ -13,8 +16,9 @@ class PlayerData {
 }
 
 class PlayBoard extends StatefulWidget {
-  const PlayBoard({super.key});
-
+  const PlayBoard({super.key, required this.playType, this.botDifficulty});
+  final PlayType playType;
+  final BotDifficulty? botDifficulty;
   @override
   State<PlayBoard> createState() => _PlayBoardState();
 }
@@ -34,16 +38,44 @@ class _PlayBoardState extends State<PlayBoard> {
     [0, 4, 8],
     [2, 4, 6],
   ];
-  final List<int> _p1Positions = [];
-  final List<int> _p2Positions = [];
+  final List<int> _p1Positions = []; //player
+  final List<int> _p2Positions = []; //bot
 
-  void _onPlay(p) {
-    if (_currentPlayer == 1 && !_p2Positions.contains(p))
-      _p1Positions.add(p);
-    else if (_currentPlayer == 2 && !_p1Positions.contains(p))
-      _p2Positions.add(p);
+  //////////////////////BOTPLAY-SIDE/////////////////////////
+  BotAi? botPlayer;
 
+  Future<int> _botPlay() async {
+    await Future.delayed(Duration(milliseconds: 500));
+    botPlayer ??= BotAi(
+      playerPositions: _p1Positions,
+      botPositions: _p2Positions,
+      difficulty: widget.botDifficulty!,
+    );
+    final move = botPlayer!.getDecision();
+    // await Future.delayed(Duration(microseconds: 500));
+    _p2Positions.add(move);
     _checkWinner();
+    _changeCurrentPlayer();
+    return move;
+  }
+
+  //////////////////////BOTPLAY-SIDE/////////////////////////
+
+  FutureOr<void> _onPlay(p) async {
+    if (_currentPlayer == 1 && !_p2Positions.contains(p)) {
+      _p1Positions.add(p);
+    } else if (_currentPlayer == 2 && !_p1Positions.contains(p)) {
+      _p2Positions.add(p);
+    }
+
+    _checkWinner(); 
+    if (_gameOver) return;  
+    _changeCurrentPlayer();
+    if (widget.playType == PlayType.PlayerVsBot && _currentPlayer == 2)
+      _botPlay();
+  }
+
+  void _changeCurrentPlayer() {
     setState(() {
       _currentPlayer = _currentPlayer == 1 ? 2 : 1;
     });
@@ -51,23 +83,33 @@ class _PlayBoardState extends State<PlayBoard> {
 
   List<int>? _winningCells;
 
-  void _checkWinner() {
+  int _checkWinner() {
     for (var combination in _winningConbinations) {
       if (_p1Positions.contains(combination[0]) &&
           _p1Positions.contains(combination[1]) &&
           _p1Positions.contains(combination[2])) {
         _winningCells = combination;
-        print('player 1 win------------------------------');
-
-        break;
+        // print('player 1 win------------------------------');
+        _gameOverDialog();
+        return 1;
       } else if (_p2Positions.contains(combination[0]) &&
           _p2Positions.contains(combination[1]) &&
           _p2Positions.contains(combination[2])) {
         _winningCells = combination;
-        print('player 1 win------------------------------');
-        break;
+        // print('player 1 win------------------------------');
+        _gameOverDialog();
+        return 2;
       }
     }
+    return 0;
+  }
+
+  bool _gameOver = false;
+
+  void _gameOverDialog() {
+    setState(() {
+      _gameOver = true;
+    });
   }
 
   @override
@@ -79,6 +121,8 @@ class _PlayBoardState extends State<PlayBoard> {
     this._playerTwoDt =
         PlayerData(Name: 'Bob', AvatarPath: 'assets/icons/emojis/emoji14.png');
     this._currentPlayer = Random.secure().nextBool() ? 1 : 2;
+    if (widget.playType == PlayType.PlayerVsBot && _currentPlayer == 2)
+      _botPlay();
   }
 
   @override
@@ -124,6 +168,9 @@ class _PlayBoardState extends State<PlayBoard> {
                 avatar1: _playerOneDt.AvatarPath,
                 avatar2: _playerTwoDt.AvatarPath,
                 winCells: _winningCells,
+                blockInsert: (widget.playType == PlayType.PlayerVsBot &&
+                        _currentPlayer == 2) ||
+                    _gameOver,
               ),
             ],
           ),
@@ -264,6 +311,7 @@ class PlayBoard3x3 extends StatelessWidget {
     required this.avatar1,
     required this.avatar2,
     this.winCells,
+    this.blockInsert = false,
   });
   final Function(int position) OnPlay;
   final int currentPlayer;
@@ -272,6 +320,7 @@ class PlayBoard3x3 extends StatelessWidget {
   final String avatar1;
   final String avatar2;
   final List<int>? winCells;
+  final bool blockInsert;
 
   @override
   Widget build(BuildContext context) {
@@ -298,10 +347,12 @@ class PlayBoard3x3 extends StatelessWidget {
           itemCount: 9,
           itemBuilder: (_, i) {
             return GestureDetector(
-              onTap: () {
-                if (!p1Positions.contains(i) && !p2Positions.contains(i))
-                  OnPlay(i);
-              },
+              onTap: blockInsert
+                  ? null
+                  : () {
+                      if (!p1Positions.contains(i) && !p2Positions.contains(i))
+                        OnPlay(i);
+                    },
               child: CircleAvatar(
                 backgroundColor: _getCellColor(i),
                 minRadius: demension / 3,
@@ -324,12 +375,15 @@ class PlayBoard3x3 extends StatelessWidget {
   }
 
   Color _getCellColor(int i) {
+    // if (blockInsert)return Colors.grey.withOpacity(.5);
     if (winCells != null && winCells!.contains(i)) return Colors.green[400]!;
     return p1Positions.contains(i)
         ? Colors.orangeAccent.withOpacity(.5)
         : p2Positions.contains(i)
             ? Colors.blueAccent.withOpacity(.5)
-            : ColorsPalette.b.withOpacity(.5);
+            : blockInsert
+                ? Colors.grey.withOpacity(.5)
+                : ColorsPalette.b.withOpacity(.5);
   }
 
   Widget _getAvatarImg(String path) => AnimatedScale(
